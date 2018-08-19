@@ -152,7 +152,7 @@ vault:
       #   path: ""
       #
       etcd:
-        address: "http://gostint-etcd-0.gostint-etcd:2379,http://gostint-etcd-1.gostint-etcd:2379,http://gostint-etcd-2.gostint-etcd:2379"
+        address: "http://gostint-etcd-cluster-client:2379"
         path: "vault/"
         # ha_enabled: "true"
         # etcd_api: "v3"
