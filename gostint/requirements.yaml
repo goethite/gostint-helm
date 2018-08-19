@@ -1,0 +1,11 @@
+# dependencies:
+#   - name: mongodb
+#     version: 4.1.1
+#     repository: "@stable"
+#   - name: vault
+#     version: 0.12.0
+#     repository: "@incubator"
+#   - name: etcd
+#     version: 0.4.1
+#     repository: "@incubator"
+# NOTE: fetched --untar as code in charts/
