@@ -30,3 +30,17 @@ Create chart name and version as used by the chart label.
 {{- define "gostint.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*****************************************************************************
+Create mongodb hostname
+*/}}
+{{- define "mongodb.fullname" -}}
+{{- printf "%s-%s" .Release.Name "mongodb" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*****************************************************************************
+Create vault hostname
+*/}}
+{{- define "vault.fullname" -}}
+{{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}

@@ -154,8 +154,7 @@ vault:
       etcd:
         address: "http://gostint-etcd-cluster-client:2379"
         path: "vault/"
-        # ha_enabled: "true"
-        # etcd_api: "v3"
+        ha_enabled: "true"
       #
       # s3:
       #   bucket: ""

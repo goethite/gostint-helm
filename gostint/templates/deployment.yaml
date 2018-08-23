@@ -35,6 +35,23 @@ spec:
             httpGet:
               path: /
               port: http
+          env:
+            - name: GOSTINT_DBURL
+              value: {{ template "mongodb.fullname" . }}:27017
+            - name: VAULT_ADDR
+              value: http://{{ template "vault.fullname" . }}:8200
+              # TODO: https
+            - name: GOSTINT_DBAUTH_TOKEN
+              value: TODO
+            - name: GOSTINT_ROLEID
+              value: TODO
+          # TODO: Priviledge for DND
+          securityContext:
+            privileged: true
+            # readOnlyRootFilesystem: true
+            # capabilities:
+            #   add:
+            #   -
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
@@ -49,3 +66,8 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
+      volumes:
+        # - name: {{ template "gostint.fullname" . }}
+        #   secret:
+        #     tlsKey: todo
+        #     tlsCert: todo
