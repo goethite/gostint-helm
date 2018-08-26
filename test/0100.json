@@ -1,0 +1,10 @@
+{
+  "qname": "job 0100",
+  "container_image": "busybox",
+  "content": "",
+  "run": [
+    "sh", "-c", "ps -efl"
+  ],
+  "secret_refs": [
+  ]
+}
