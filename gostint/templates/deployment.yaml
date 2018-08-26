@@ -19,22 +19,78 @@ spec:
         app: {{ template "gostint.name" . }}
         release: {{ .Release.Name }}
     spec:
+      # securityContext:
+      #   fsGroup: 1000
+      #   runAsUser: 1000
+      initContainers:
+        - name: wait-for-mongodb
+          image: alpine
+          command:
+            - 'sh'
+            - '-c'
+            - |-
+              for i in $(seq 1 200)
+              do
+                nc -z -w3 ${MONGODB_HOST} ${MONGODB_PORT} && \
+                  { sleep 15; exit 0; } || sleep 3
+              done
+              exit 1
+          env:
+            - name: MONGODB_HOST
+              value: {{ template "mongodb.fullname" . }}
+            - name: MONGODB_PORT
+              value: "27017"
+        - name: wait-for-vault-unseal
+          image: vault
+          securityContext:
+            runAsUser: 0
+          env:
+            - name: VAULT_ADDR
+              value: http://{{ template "vault.fullname" . }}:8200
+          command:
+            - 'sh'
+            - '-x'
+            - '-c'
+            - |-
+              # (
+              echo "*** Waiting for vault to be unsealed"
+              for i in $(seq 1 200)
+              do
+                vault status --format=json
+                V_STATUS=$(vault status | grep "^Sealed" | awk '{ print $2; }')
+                echo "V_STATUS=$V_STATUS"
+                if [ "$V_STATUS" = "false" ]
+                then
+                  exit 0
+                fi
+                sleep 3
+              done
+              exit 1
+              # ) >> /init.log 2>&1
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: 80
+            - name: https
+              containerPort: 3232
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
-              port: http
+            exec:
+              command:
+                - 'sh'
+                - '-xe'
+                - '-c'
+                - |-
+                  ps -efl | grep -v grep | grep /usr/bin/gostint
           readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            exec:
+              command:
+                - 'sh'
+                - '-xe'
+                - '-c'
+                - |-
+                  ps -efl | grep -v grep | grep /usr/bin/gostint
           env:
             - name: GOSTINT_DBURL
               value: {{ template "mongodb.fullname" . }}:27017
@@ -42,10 +98,23 @@ spec:
               value: http://{{ template "vault.fullname" . }}:8200
               # TODO: https
             - name: GOSTINT_DBAUTH_TOKEN
-              value: TODO
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-db-auth-token
+                  key: token
             - name: GOSTINT_ROLEID
-              value: TODO
-          # TODO: Priviledge for DND
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-roleid
+                  key: role_id
+            - name: GOSTINT_SSL_CERT
+              value: /gostint-tls/cert.pem
+            - name: GOSTINT_SSL_KEY
+              value: /gostint-tls/key.pem
+          volumeMounts:
+            - name: tls
+              mountPath: "/gostint-tls"
+          # Priviledge for DND
           securityContext:
             privileged: true
             # readOnlyRootFilesystem: true
@@ -67,7 +136,6 @@ spec:
 {{ toYaml . | indent 8 }}
     {{- end }}
       volumes:
-        # - name: {{ template "gostint.fullname" . }}
-        #   secret:
-        #     tlsKey: todo
-        #     tlsCert: todo
+        - name: tls
+          secret:
+            secretName: {{ .Release.Name }}-gostint-tls
