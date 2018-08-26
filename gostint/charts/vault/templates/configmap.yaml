@@ -9,4 +9,4 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 data:
   config.json: |
-    {{ .Values.vault.config | toJson }}
+    {{ printf "%s-%s-config:8200" .Release.Name .Chart.Name | set .Values.vault.config "api_addr" | toJson }}

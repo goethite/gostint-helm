@@ -60,6 +60,8 @@ spec:
             add:
             - IPC_LOCK
         env:
+          - name: VAULT_ADDR
+            value: http://127.0.0.1:8200  # TODO: https
           - name: POD_IP
             valueFrom:
               fieldRef:
