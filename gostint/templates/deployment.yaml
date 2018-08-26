@@ -139,3 +139,17 @@ spec:
         - name: tls
           secret:
             secretName: {{ .Release.Name }}-gostint-tls
+      # dnsPolicy: Default
+      # dnsPolicy: ClusterFirst
+      # dnsPolicy: None
+      # dnsConfig:
+      #   nameservers:
+      #     - 10.96.0.10
+      #   searches:
+      #     - default.svc.cluster.local
+      #     - svc.cluster.local
+      #     - cluster.local
+      #     - openstacklocal
+      #   options:
+      #     - name: ndots
+      #       value: "0"
