@@ -14,6 +14,9 @@ spec:
       targetPort: https
       protocol: TCP
       name: http
+    {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+    {{ end }}
   selector:
     app: {{ template "gostint.name" . }}
     release: {{ .Release.Name }}
