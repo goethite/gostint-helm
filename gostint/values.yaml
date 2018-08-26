@@ -16,8 +16,13 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
   port: 3232
+  type: ClusterIP
+
+  # type: NodePort
+  # nodePort: 3232
+
+  # type: LoadBalancer
 
 ingress:
   enabled: false
