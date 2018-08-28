@@ -14,6 +14,26 @@
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
   export SERVICE_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app={{ template "gostint.name" . }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
-  echo "Visit http://127.0.0.1:13232 to use your application"
+  echo "Visit http://127.0.0.1:13232 to use your gostint api"
   kubectl port-forward svc/$SERVICE_NAME 13232:3232
+
+2. Start port-forward to Vault
+  export VAULT_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app=vault,release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:18200 to use your vault api"
+  kubectl port-forward svc/$VAULT_NAME 18200:8200
+
+3. Test API using gostint-client
+  $ gostint-client -vault-token=@your-vault-token \
+    -url=https://127.0.0.1:13232 \
+    -vault-url=http://127.0.0.1:18200 \
+    -image=alpine \
+    -run='["cat", "/etc/os-release"]'
+  NAME="Alpine Linux"
+  ID=alpine
+  VERSION_ID=3.8.0
+  PRETTY_NAME="Alpine Linux v3.8"
+  HOME_URL="http://alpinelinux.org"
+  BUG_REPORT_URL="http://bugs.alpinelinux.org"
+
+
 {{- end }}
