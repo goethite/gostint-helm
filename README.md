@@ -1,4 +1,4 @@
-# Helm Charts for Gostint DevOps Automation
+# Helm Charts for GoStint DevOps Automation
 
 https://goethite.github.io/gostint/
 
