@@ -6,8 +6,7 @@ replicaCount: 3
 # imagePullSecret:
 image:
   repository: vault
-  # tag: 0.10.1
-  tag: 0.10.4
+  tag: 0.11.0
   pullPolicy: IfNotPresent
 
 consulAgent:
@@ -129,7 +128,8 @@ vault:
   #   secret:
   #     secretName: some-secret
   readiness:
-    readyIfSealed: false
+    # readyIfSealed: false
+    readyIfSealed: true
     readyIfStandby: true
     readyIfUninitialized: true
   config:

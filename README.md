@@ -21,7 +21,7 @@ Note: `KUBECONFIG` must be set for your kubernetes environment.
 helm install gostint/
 ```
 ### Init the Vault
-When everything is up (see `helm status`)
+When vault is up is up (see `helm status` and `kubectl logs`)
 ```
 init/vault-init.sh release-name namespace
 ```
