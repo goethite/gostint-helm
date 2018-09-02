@@ -44,9 +44,14 @@ spec:
           image: vault
           securityContext:
             runAsUser: 0
+          volumeMounts:
+            - name: vaultca
+              mountPath: "/vault-ca"
           env:
             - name: VAULT_ADDR
-              value: http://{{ template "vault.fullname" . }}:8200
+              value: https://{{ template "vault.fullname" . }}.default.svc:8200
+            - name: VAULT_CACERT
+              value: "/vault-ca/vault-client-ca.crt"
           command:
             - 'sh'
             - '-x'
@@ -95,8 +100,9 @@ spec:
             - name: GOSTINT_DBURL
               value: {{ template "mongodb.fullname" . }}:27017
             - name: VAULT_ADDR
-              value: http://{{ template "vault.fullname" . }}:8200
-              # TODO: https
+              value: https://{{ template "vault.fullname" . }}.default.svc:8200
+            - name: VAULT_CACERT
+              value: "/vault-ca/vault-client-ca.crt"
             - name: GOSTINT_DBAUTH_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -114,6 +120,8 @@ spec:
           volumeMounts:
             - name: tls
               mountPath: "/gostint-tls"
+            - name: vaultca
+              mountPath: "/vault-ca"
           # Priviledge for DND
           securityContext:
             privileged: true
@@ -139,6 +147,9 @@ spec:
         - name: tls
           secret:
             secretName: {{ .Release.Name }}-gostint-tls
+        - name: vaultca
+          secret:
+            secretName: {{ template "vault.fullname" . }}-default-vault-client-tls
       # dnsPolicy: Default
       # dnsPolicy: ClusterFirst
       # dnsPolicy: None
