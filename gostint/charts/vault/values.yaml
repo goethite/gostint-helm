@@ -129,7 +129,7 @@ vault:
   #     secretName: some-secret
   readiness:
     # readyIfSealed: false
-    readyIfSealed: true
+    readyIfSealed: false
     readyIfStandby: true
     readyIfUninitialized: true
   config:
