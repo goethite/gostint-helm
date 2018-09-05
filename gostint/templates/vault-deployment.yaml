@@ -1,0 +1,15 @@
+apiVersion: "vault.security.coreos.com/v1alpha1"
+kind: "VaultService"
+metadata:
+  #name: "gostint"
+  name: {{ template "gostint.fullname" . }}-vault
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  nodes: 2
+  # baseImage: docker.io/goethite/gostint-vault
+  baseImage: goethite/gostint-vault
+  version: "0.11.0"

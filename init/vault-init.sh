@@ -18,7 +18,7 @@ SECRET_NAME="$RELEASE-vault-keys"
 
 LABELS=$(kubectl get secret -l release=$RELEASE -n $NAMESPACE --show-labels | sed -n 2p | awk '{print $5}' | sed 's/\,/ /g' | grep "app=vault")
 # echo "LABELS: $LABELS"
-FIRST_VAULT_POD=$(kubectl get po -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}')
+FIRST_VAULT_POD=$(kubectl get po -l app=vault,vault_cluster=$RELEASE-gostint-vault -n $NAMESPACE | awk '{if(NR==2)print $1}')
 # echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 INIT_MESSAGE=$(kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -- sh -c "vault operator init --tls-skip-verify" 2>&1)
 # echo "INIT_MESSAGE: $INIT_MESSAGE"

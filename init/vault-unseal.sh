@@ -21,7 +21,7 @@ echo "UNSEAL_KEYS: $UNSEAL_KEYS"
 for i in `seq 1 $REQUIRED_KEY_COUNT`;
 do
   KEY=$(echo "$UNSEAL_KEYS"  | sed "${i}q;d" | base64 --decode)
-  kubectl get po -l app=vault,release=$RELEASE -n $NAMESPACE \
+  kubectl get po -l app=vault,vault_cluster=$RELEASE-gostint-vault -n $NAMESPACE \
       | awk '{if(NR>1)print $1}' \
       | xargs -I % kubectl exec -n $NAMESPACE % -- sh -c "vault operator unseal --tls-skip-verify $KEY";
 done
