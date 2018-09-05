@@ -15,39 +15,7 @@ This is a work in progress and not for production use...
 * incubator
 
 ## Deploying
-Note: `KUBECONFIG` must be set for your kubernetes environment.
-
-```
-helm install gostint/
-```
-### Init the Vault
-When vault is up is up (see `helm status` and `kubectl logs`)
-```
-init/vault-init.sh release-name namespace
-```
-e.g.
-```
-init/vault-init.sh cool-rabbit default
-```
-
-### Unseal the Vault
-(Note: this approach may not be suitable for production deployments)
-```
-init/vault-unseal.sh release-name namespace
-```
-
-### Init GoStint
-```
-init/gostint-init.sh release-name namespace
-```
-
-## Upgrading
-After downloading / cloning latest version:
-```
-helm upgrade release-name gostint/
-```
-
-## Deploying v1 Chart
+Note: `KUBECONFIG` must be set for your kubernetes environment and helm setup.
 
 ### Install etcd-operator on your cluster
 see [etc-operator](https://github.com/helm/charts/tree/master/stable/etcd-operator)
@@ -63,28 +31,28 @@ helm install stable/vault-operator --name sec-op
 
 ### Install GoStint
 ```
-helm install gostint/ --name dev-op
+helm install gostint/ --name aut-op
 ```
 This starts etcd, vault, mongodb and gostint services.
 
 Init the vault:
 ```
-init/vault-init.sh dev-op default
+init/vault-init.sh aut-op default
 ```
 
 Unseal the vault:
 ```
-init/vault-unseal.sh dev-op default
+init/vault-unseal.sh aut-op default
 ```
 WARNING: This approach for initialising and unsealing the vault is probably
 not suitable for Production use - see the Vault Docs.
 
 Init GoStint:
 ```
-init/gostint-init.sh dev-op default
+init/gostint-init.sh aut-op default
 ```
 
 ### Upgrade GoStint
 ```
-helm upgrade dev-op gostint/
+helm upgrade aut-op gostint/
 ```
