@@ -10,10 +10,9 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v0.7.0
-  # repository: nginx
-  # tag: latest
+  tag: v0.8.0
   pullPolicy: IfNotPresent
+  # pullPolicy: Always
 
 service:
   port: 3232

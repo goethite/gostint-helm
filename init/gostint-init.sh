@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 if [ $# -lt 2 ]
   then
@@ -15,6 +15,7 @@ DB_SECRET_NAME="$RELEASE-mongodb"
 ROLEID_SECRET_NAME="$RELEASE-gostint-roleid"
 DBTOKEN_SECRET_NAME="$RELEASE-gostint-db-auth-token"
 GOSTINT_TLS_SECRET_NAME="$RELEASE-gostint-tls"
+GOSTINT_ROLENAME="${GOSTINT_ROLENAME:-gostint-role}"
 
 echo "Getting root key from Kubernetes secret"
 ROOT_KEY=$(kubectl get secret -n $NAMESPACE ${SECRET_NAME} -o yaml | grep -e "^[ ]*rootkey:" | awk '{print $2}' | base64 --decode)
@@ -61,7 +62,7 @@ echo '=== Enable transit plugin ==============================='
 vault secrets enable transit
 
 echo '=== Create gostint instance transit keyring =============='
-vault write -f transit/keys/gostint
+vault write -f transit/keys/$GOSTINT_ROLENAME
 
 echo '=== enable AppRole auth ================================='
 vault auth enable approle
@@ -74,20 +75,20 @@ path "secret/*" {
 EEOF
 
 echo '=== Create policy to access transit decrypt gostint for gostint-role =========='
-vault policy write gostint-approle-transit-decrypt-gostint - <<EEOF
-path "transit/decrypt/gostint" {
+vault policy write $GOSTINT_ROLENAME-approle-transit-decrypt-gostint - <<EEOF
+path "transit/decrypt/$GOSTINT_ROLENAME" {
   capabilities = ["update"]
 }
 EEOF
 
 echo '=== Create approle role for gostint ======================'
-vault write auth/approle/role/gostint-role \
+vault write auth/approle/role/$GOSTINT_ROLENAME \
   secret_id_ttl=24h \
   secret_id_num_uses=10000 \
   token_num_uses=10 \
   token_ttl=20m \
   token_max_ttl=30m \
-  policies="gostint-approle-kv,gostint-approle-transit-decrypt-gostint"
+  policies="gostint-approle-kv,$GOSTINT_ROLENAME-approle-transit-decrypt-gostint"
 EOF
 
 echo '=== Get approle role_id for gostint ======================'
@@ -95,7 +96,7 @@ GOSTINT_ROLEID=$(
 kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -x <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
-vault read -format=yaml -field=data auth/approle/role/gostint-role/role-id | awk '{print \$2;}'
+vault read -format=yaml -field=data auth/approle/role/$GOSTINT_ROLENAME/role-id | awk '{print \$2;}'
 EOF
 )
 echo "GOSTINT_ROLEID: $GOSTINT_ROLEID"
@@ -104,10 +105,14 @@ echo "=== Deleting existing gostint role_id secret ============="
 kubectl delete secret -n $NAMESPACE $ROLEID_SECRET_NAME --ignore-not-found=true
 
 echo "=== Creating gostint role_id secret ======================"
-kubectl create secret generic $ROLEID_SECRET_NAME -n $NAMESPACE --from-literal=role_id=$GOSTINT_ROLEID
+kubectl create secret generic $ROLEID_SECRET_NAME -n $NAMESPACE \
+  --from-literal=role_id=$GOSTINT_ROLEID \
+  --from-literal=role_name=$GOSTINT_ROLENAME
+
 kubectl label secret -n $NAMESPACE \
   $ROLEID_SECRET_NAME \
   app="${RELEASE}-gostint-init"
+
 kubectl label secret -n $NAMESPACE \
   --overwrite \
   $ROLEID_SECRET_NAME \
@@ -153,9 +158,11 @@ kubectl delete secret -n $NAMESPACE $GOSTINT_TLS_SECRET_NAME --ignore-not-found=
 kubectl create secret generic $GOSTINT_TLS_SECRET_NAME -n $NAMESPACE \
   --from-file=$T_DIR/key.pem \
   --from-file=$T_DIR/cert.pem
+
 kubectl label secret -n $NAMESPACE \
   $GOSTINT_TLS_SECRET_NAME \
   app="${RELEASE}-gostint-init"
+
 kubectl label secret -n $NAMESPACE \
   --overwrite \
   $GOSTINT_TLS_SECRET_NAME \

@@ -108,6 +108,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-gostint-db-auth-token
                   key: token
+            - name: GOSTINT_ROLENAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-roleid
+                  key: role_name
             - name: GOSTINT_ROLEID
               valueFrom:
                 secretKeyRef:
