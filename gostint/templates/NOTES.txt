@@ -18,7 +18,7 @@
   kubectl port-forward svc/$SERVICE_NAME 13232:3232
 
 2. Start port-forward to Vault
-  export VAULT_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app=vault,vault_cluster=$RELEASE-gostint-vault" -o jsonpath="{.items[0].metadata.name}")
+  export VAULT_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app=vault,vault_cluster={{ .Release.Name }}-gostint-vault" -o jsonpath="{.items[0].metadata.name}")
   echo "Visit http://127.0.0.1:18200 to use your vault api"
   kubectl port-forward svc/$VAULT_NAME 18200:8200
 
