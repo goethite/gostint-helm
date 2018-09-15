@@ -64,3 +64,28 @@ init/gostint-init.sh aut-op default
 ```bash
 helm upgrade aut-op gostint/
 ```
+
+### Ingress Controller
+The helm chart also deploys an Ingress Controller on port 443 to allow a single
+api to provide access to both the Vault and GoStint APIs using path based routing,
+e.g.:
+
+Service | Ingress URL
+------- | -----------
+vault   | https://url/vault
+gostint   | https://url/gostint
+
+So an execution of `gostint-client` could look like:
+```bash
+gostint-client \
+  -url=https://your-ingress-fqdn/gostint \
+  -vault-url=https://your-ingress-fqdn/vault \
+  -vault-roleid=@.client_role_id \
+  -vault-secretid=@.client_secret_id \
+  -image=goethite/gostint-kubectl \
+  -env-vars='["RUNCMD=/usr/local/bin/helm"]' \
+  -run='["status", "aut-op"]' \
+  -secret-refs='["KUBECONFIG_BASE64@secret/k8s_cluster_1.kubeconfig_base64"]' \
+  -image-pull-policy=Always \
+  -debug
+```
