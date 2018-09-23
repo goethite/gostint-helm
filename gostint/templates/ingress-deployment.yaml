@@ -4,9 +4,11 @@ kind: Ingress
 metadata:
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
-      {{ $key }}: {{ $value | quote }}
+    {{ $key }}: {{ $value | quote }}
     {{- end }}
-  name: {{ template "gostint.fullname" . }}-ingress
+    # ingress.kubernetes.io/ssl-passthrough: "true"
+    # nginx.ingress.kubernetes.io/secure-backends: "true"
+  name: {{ template "gostint.fullname" . }}-ingress-gostint
   labels:
     app: {{ template "gostint.name" . }}
     chart: {{ template "gostint.chart" . }}
@@ -16,14 +18,42 @@ spec:
   rules:
     - http:
         paths:
-          - path: /vault
-            backend:
-              serviceName: {{ template "gostint.fullname" . }}-vault
-              servicePort: 8200
           - path: /gostint
             backend:
               serviceName: {{ template "gostint.fullname" . }}
               servicePort: 3232
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    # ingress.kubernetes.io/ssl-passthrough: "true"
+    # nginx.ingress.kubernetes.io/secure-backends: "true"
+  name: {{ template "gostint.fullname" . }}-ingress-vault
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  rules:
+    - http:
+        paths:
+          # NOTE: This path-based-routing approach causes the ingress controller
+          # to terminate the TLS in the controller in order to route it -
+          # this is not ideal for production use, where you need end-2-end
+          # unbroken TLS encryption - I would recommend investigating using
+          # ssl-passthrough instead, with SNI ServerName routing.
+          - path: /vault
+            backend:
+              serviceName: {{ template "gostint.fullname" . }}-vault
+              servicePort: 8200
+  tls:
+    - secretName: {{ .Values.ingress.tls.secretName }}
+
 {{- end }}
