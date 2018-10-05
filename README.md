@@ -47,7 +47,7 @@ helm install gostint/ --name aut-op
 ```
 This starts etcd, vault, mongodb and gostint services.
 
-Init the vault:
+Wait for Vault PODs to be in running state then Init the vault:
 ```bash
 gostint/init/vault-init.sh aut-op default
 ```
@@ -77,7 +77,7 @@ e.g.:
 Service | Ingress URL
 ------- | -----------
 vault   | https://url/vault
-gostint   | https://url/gostint
+gostint | https://url/gostint
 
 So an execution of `gostint-client` could look like:
 ```bash
@@ -97,3 +97,7 @@ gostint-client \
 Init Ingress:
 ```bash
 gostint/init/ingress-init.sh aut-op default
+
+IMPORTANT: The above path based ingress for vault breaks end-to-end TLS
+encryption and could present a security risk.  SSL Pasthrough with SNI
+hostname based routing may be a better option...

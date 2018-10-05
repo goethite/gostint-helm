@@ -78,11 +78,13 @@ spec:
             value: {{ default "" .Values.mongodbExtraFlags | join " " }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
+            # exec:
+            #   command:
+            #     - mongo
+            #     - --eval
+            #     - "db.adminCommand('ping')"
+            tcpSocket:
+              port: mongodb
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -91,11 +93,13 @@ spec:
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
+            # exec:
+            #   command:
+            #     - mongo
+            #     - --eval
+            #     - "db.adminCommand('ping')"
+            tcpSocket:
+              port: mongodb
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
