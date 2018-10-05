@@ -99,5 +99,7 @@ Init Ingress:
 gostint/init/ingress-init.sh aut-op default
 
 IMPORTANT: The above path based ingress for vault breaks end-to-end TLS
-encryption and could present a security risk.  SSL Pasthrough with SNI
-hostname based routing may be a better option...
+encryption and could present a security risk (for gostint-client authenticating,
+but not for the actual submission of the job).  SSL Pasthrough with SNI
+hostname based routing may be a better option, or better yet, direct access to
+the vault.
