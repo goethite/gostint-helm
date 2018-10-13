@@ -55,14 +55,6 @@ tolerations: []
 
 affinity: {}
 
-# etcd:
-#   persistentVolume:
-#     enabled: true
-#     storage: "1Gi"
-#     storageClass: "-"
-
-# vault:
-#   config:
-#     storage:
-#       etcd:
-#         address: {{  }}
+vault:
+  baseImage: goethite/gostint-vault
+  version: "0.11.3"
