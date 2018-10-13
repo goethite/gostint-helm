@@ -10,6 +10,5 @@ metadata:
     heritage: {{ .Release.Service }}
 spec:
   nodes: 2
-  # baseImage: docker.io/goethite/gostint-vault
-  baseImage: goethite/gostint-vault
-  version: "0.11.0"
+  baseImage: {{ .Values.vault.baseImage | quote }}
+  version: {{ .Values.vault.version | quote }}

@@ -10,13 +10,26 @@
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
   export SERVICE_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app={{ template "gostint.name" . }},release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
-  echo "Visit http://127.0.0.1:13232 to use your gostint api"
+  echo "Visit https://127.0.0.1:13232 to use your gostint api"
   kubectl port-forward svc/$SERVICE_NAME 13232:3232
 
 2. Start port-forward to Vault
   export VAULT_NAME=$(kubectl get service --namespace {{ .Release.Namespace }} -l "app=vault,vault_cluster={{ .Release.Name }}-gostint-vault" -o jsonpath="{.items[0].metadata.name}")
-  echo "Visit http://127.0.0.1:18200 to use your vault api"
+  echo "Visit https://127.0.0.1:18200 to use your vault api"
   kubectl port-forward svc/$VAULT_NAME 18200:8200
+
+You can also access via the Ingress Controller, see:
+  kubectl --namespace default get services -o wide -w ingress-op-nginx-ingress-controller
+
+For Vault
+  https://external-ip/vault
+  NOTE: If using path based ingress routing then be aware that TLS encryption
+  is ended in the ingress controller to be able to route to the Vault. A better
+  solution may be to use an SSL-Passthrough ingress-controller with SNI hostname
+  based routing.
+
+For GoStint:
+  https://external-ip/gostint
 
 3. Test API using gostint-client
 
