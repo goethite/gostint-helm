@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.0.1
+  tag: v1.1.1
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
@@ -55,6 +55,10 @@ tolerations: []
 
 affinity: {}
 
+terminationGracePeriodSeconds: 600
+
+# IMPORTANT: If you upgrade the vault, then you will need to rerun the unseal
+# script, as each new pod will always start in a sealed state.
 vault:
   baseImage: goethite/gostint-vault
   version: "0.11.3"
