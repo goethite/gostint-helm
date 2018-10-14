@@ -72,6 +72,7 @@ spec:
               done
               exit 1
               # ) >> /init.log 2>&1
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -80,6 +81,29 @@ spec:
             - name: https
               containerPort: 3232
               protocol: TCP
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - 'sh'
+                  - '-x'
+                  - '-c'
+                  - |-
+                    # (
+                    GPID=$(ps -e | grep /usr/bin/gostint | grep -v grep | awk '{print $1;}')
+                    kill -INT $GPID
+                    sleep 5
+                    while [ 1 == 1 ]
+                    do
+                      running_jobs=$(curl -s -k https://127.0.0.1:3232/v1/api/health?k=running_jobs)
+                      if [ "$running_jobs" == "0" ]
+                      then
+                        kill $GPID
+                        exit 0
+                      fi
+                      sleep 5
+                    done
+                    # ) >> /tmp/stop.log 2>&1
           livenessProbe:
             exec:
               command:
