@@ -1,7 +1,6 @@
 apiVersion: "vault.security.coreos.com/v1alpha1"
 kind: "VaultService"
 metadata:
-  #name: "gostint"
   name: {{ template "gostint.fullname" . }}-vault
   labels:
     app: {{ template "gostint.name" . }}
@@ -12,3 +11,4 @@ spec:
   nodes: 2
   baseImage: {{ .Values.vault.baseImage | quote }}
   version: {{ .Values.vault.version | quote }}
+  configMapName: {{ template "gostint.fullname" . }}-vault-config

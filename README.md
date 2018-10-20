@@ -63,6 +63,7 @@ Init GoStint:
 ```bash
 gostint/init/gostint-init.sh aut-op default
 ```
+NOTE: the gostint pods will wait for this init step to be completed.
 
 ### Upgrade GoStint
 ```bash

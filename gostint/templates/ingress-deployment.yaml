@@ -6,6 +6,7 @@ metadata:
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
+    nginx.ingress.kubernetes.io/rewrite-target: /
     # ingress.kubernetes.io/ssl-passthrough: "true"
     # nginx.ingress.kubernetes.io/secure-backends: "true"
   name: {{ template "gostint.fullname" . }}-ingress-gostint
@@ -32,6 +33,7 @@ metadata:
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
+    nginx.ingress.kubernetes.io/rewrite-target: /
     # ingress.kubernetes.io/ssl-passthrough: "true"
     # nginx.ingress.kubernetes.io/secure-backends: "true"
   name: {{ template "gostint.fullname" . }}-ingress-vault
@@ -55,5 +57,81 @@ spec:
               servicePort: 8200
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    # ingress.kubernetes.io/ssl-passthrough: "true"
+    # nginx.ingress.kubernetes.io/secure-backends: "true"
+    # nginx.ingress.kubernetes.io/rewrite-target: /ui
+  name: {{ template "gostint.fullname" . }}-ingress-vault-ui
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  rules:
+    - http:
+        paths:
+          # Workaround for ui redirect in vault
+          - path: /ui
+            backend:
+              serviceName: {{ template "gostint.fullname" . }}-vault
+              servicePort: 8200
+          - path: /v1
+            backend:
+              serviceName: {{ template "gostint.fullname" . }}-vault
+              servicePort: 8200
+  tls:
+    - secretName: {{ .Values.ingress.tls.secretName }}
+{{- end }}
+{{- if .Values.sniIngress.enabled -}}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: sni-nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    # "ingress.kubernetes.io/ssl-passthrough": "true" # old style
+    # mginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  name: {{ template "gostint.fullname" . }}-ingress-vault-sni
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  rules:
+    - host: snigostint.default.pod
+      http:
+        paths:
+          # Workaround for ui redirect in vault
+          - path: /
+            backend:
+              serviceName: {{ template "gostint.fullname" . }}
+              servicePort: 3232
+    - host: snivault.default.pod
+      http:
+        paths:
+          # Workaround for ui redirect in vault
+          - path: /
+            backend:
+              serviceName: {{ template "gostint.fullname" . }}-vault
+              servicePort: 8200
+  tls:
+    # - secretName: aut-op-gostint-vault-default-vault-server-tls
+    - secretName: snivault
+      hosts:
+        - snivault.default.pod
+    - secretName: snigostint
+      hosts:
+        - snigostint.default.pod
 
 {{- end }}
