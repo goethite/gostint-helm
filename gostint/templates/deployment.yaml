@@ -49,7 +49,11 @@ spec:
               mountPath: "/vault-ca"
           env:
             - name: VAULT_ADDR
-              value: https://{{ template "vault.fullname" . }}.default.svc:8200
+              {{- if .Values.vault.internalToChart }}
+              value: https://{{ template "vault.fullname" . }}.{{ .Release.Namespace }}.svc:8200
+              {{- else }}
+              value: https://{{ template "vault.fullname" . }}:{{ .Values.vault.external.port}}{{ .Values.vault.external.path}}
+              {{- end }}
             - name: VAULT_CACERT
               value: "/vault-ca/vault-client-ca.crt"
           command:
@@ -123,8 +127,14 @@ spec:
           env:
             - name: GOSTINT_DBURL
               value: {{ template "mongodb.fullname" . }}:27017
+
             - name: VAULT_ADDR
-              value: https://{{ template "vault.fullname" . }}.default.svc:8200
+              {{- if .Values.vault.internalToChart }}
+              value: https://{{ template "vault.fullname" . }}.{{ .Release.Namespace }}.svc:8200
+              {{- else }}
+              value: https://{{ template "vault.fullname" . }}:{{ .Values.vault.external.port}}{{ .Values.vault.external.path}}
+              {{- end }}
+
             - name: VAULT_CACERT
               value: "/vault-ca/vault-client-ca.crt"
             - name: GOSTINT_DBAUTH_TOKEN
@@ -178,7 +188,11 @@ spec:
             secretName: {{ .Release.Name }}-gostint-tls
         - name: vaultca
           secret:
-            secretName: {{ template "vault.fullname" . }}-default-vault-client-tls
+            {{- if .Values.vault.internalToChart }}
+            secretName: {{ template "vault.fullname" . }}-{{ .Release.Namespace }}-vault-client-tls
+            {{- else }}
+            secretName: {{ .Values.vault.external.vaultClientTlsSecret }}
+            {{- end }}
       # dnsPolicy: Default
       # dnsPolicy: ClusterFirst
       # dnsPolicy: None

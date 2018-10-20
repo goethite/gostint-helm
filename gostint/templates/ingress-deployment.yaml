@@ -25,6 +25,7 @@ spec:
               servicePort: 3232
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
+{{- if .Values.vault.internalToChart }}
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -90,6 +91,7 @@ spec:
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
 {{- end }}
+{{- end }}
 {{- if .Values.sniIngress.enabled -}}
 ---
 apiVersion: extensions/v1beta1
@@ -117,6 +119,7 @@ spec:
             backend:
               serviceName: {{ template "gostint.fullname" . }}
               servicePort: 3232
+{{- if .Values.vault.internalToChart -}}
     - host: snivault.default.pod
       http:
         paths:
@@ -125,11 +128,13 @@ spec:
             backend:
               serviceName: {{ template "gostint.fullname" . }}-vault
               servicePort: 8200
+{{- end }}
   tls:
-    # - secretName: aut-op-gostint-vault-default-vault-server-tls
+{{- if .Values.vault.internalToChart -}}
     - secretName: snivault
       hosts:
         - snivault.default.pod
+{{- end }}
     - secretName: snigostint
       hosts:
         - snigostint.default.pod
