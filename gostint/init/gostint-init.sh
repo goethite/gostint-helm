@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 if [ $# -lt 2 ]
   then
@@ -31,14 +31,14 @@ echo "Configuring Vault for GoStint"
 FIRST_VAULT_POD=$(kubectl get po -l app=vault,vault_cluster=$RELEASE-gostint-vault -n $NAMESPACE | awk '{if(NR==2)print $1}')
 echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 
-kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -x <<EOF
+kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -xe <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
 #vault login $ROOT_KEY
 vault status
 
 echo '=== Configuring MongoDB secret engine ========================='
-vault secrets enable database
+vault secrets enable database || /bin/true
 vault write database/config/gostint-mongodb \
   plugin_name=mongodb-database-plugin \
   allowed_roles="gostint-dbauth-role" \
@@ -59,13 +59,13 @@ path "database/creds/gostint-dbauth-role" {
 EEOF
 
 echo '=== Enable transit plugin ==============================='
-vault secrets enable transit
+vault secrets enable transit || /bin/true
 
 echo '=== Create gostint instance transit keyring =============='
 vault write -f transit/keys/$GOSTINT_ROLENAME
 
 echo '=== enable AppRole auth ================================='
-vault auth enable approle
+vault auth enable approle || /bin/true
 
 echo '=== Create policy to access kv for gostint-role =========='
 vault policy write gostint-approle-kv - <<EEOF
@@ -147,17 +147,28 @@ kubectl label secret -n $NAMESPACE \
 
 echo "=== Creating gostint self-signed cert ===================="
 T_DIR=$(mktemp -d /tmp/gostint.XXXXXXXXX)
-echo -e 'GB\n\n\ngostint\n\n${RELEASE}-gostint\n\n' | \
-  openssl req  -nodes -new -x509  \
-    -keyout $T_DIR/key.pem \
-    -out $T_DIR/cert.pem \
-    -days 365
+openssl req  -nodes -new -x509  \
+  -subj "/C=GB/ST=Lancs/L=Cloud/O=GoStint/CN=${RELEASE}-gostint" \
+  -keyout $T_DIR/key.pem \
+  -out $T_DIR/cert.pem \
+  -days 365 \
+  -reqexts SAN \
+  -extensions SAN \
+  -config <(cat /etc/ssl/openssl.cnf \
+    <(printf "\n[SAN]\nsubjectAltName=DNS:snigostint.default.pod,DNS:*.default.pod"))
+openssl x509 -in $T_DIR/cert.pem -text -noout
 
 echo "=== Deleting existing gostint TLS secret "
 kubectl delete secret -n $NAMESPACE $GOSTINT_TLS_SECRET_NAME --ignore-not-found=true
 kubectl create secret generic $GOSTINT_TLS_SECRET_NAME -n $NAMESPACE \
   --from-file=$T_DIR/key.pem \
   --from-file=$T_DIR/cert.pem
+
+echo "=== Deleting existing gostint TLS secret for ingress"
+kubectl delete secret -n $NAMESPACE snigostint --ignore-not-found=true
+kubectl create secret tls snigostint -n $NAMESPACE \
+  --key=$T_DIR/key.pem \
+  --cert=$T_DIR/cert.pem
 
 kubectl label secret -n $NAMESPACE \
   $GOSTINT_TLS_SECRET_NAME \
