@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.2.0
+  tag: v1.3.0
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
