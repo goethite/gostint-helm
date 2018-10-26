@@ -58,6 +58,9 @@ path "database/creds/gostint-dbauth-role" {
 }
 EEOF
 
+echo '=== Enable kv version 2 ==============================='
+vault secrets enable -version=2 kv
+
 echo '=== Enable transit plugin ==============================='
 vault secrets enable transit || /bin/true
 
@@ -70,6 +73,9 @@ vault auth enable approle || /bin/true
 echo '=== Create policy to access kv for gostint-role =========='
 vault policy write gostint-approle-kv - <<EEOF
 path "secret/*" {
+  capabilities = ["read"]
+}
+path "kv/*" {
   capabilities = ["read"]
 }
 EEOF
