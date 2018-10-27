@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.3.0
+  tag: v1.4.0
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
@@ -65,7 +65,7 @@ terminationGracePeriodSeconds: 600
 # script, as each new pod will always start in a sealed state.
 vault:
   baseImage: goethite/gostint-vault
-  version: "0.11.3"
+  version: "0.11.4"
 
   # Deploys vault (via vault-operator) internal to this chart release
   internalToChart: true
