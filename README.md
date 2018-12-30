@@ -4,7 +4,16 @@ https://goethite.github.io/gostint/
 
 This is a proof-of-concept helm chart for the GoStint project.
 
-This is a work in progress and not for production use...
+This is a work in progress and __not for production use...__
+
+The goal is to provide a pre-packaged demo environment for GoStint, with
+Hashicorp Vault etc all preconfigured.
+
+The PoC GoStint UI is enabled by default in the helm chart and can be accessed
+by pointing your browser at https://your-k8s-ingess/gostint.
+The `values.yaml` setting `ui.vaultExternalAddr` must be set to the ingress
+url of the Vault, e.g. https://your-k8s-ingress/vault (see also comments
+below regarding the Ingress Controller).
 
 ## IMPORTANT v1 -> v2
 The upgrade of the helm chart fro v1.* to v2.* is a breaking change due to
@@ -56,7 +65,7 @@ Unseal the vault:
 ```bash
 gostint/init/vault-unseal.sh aut-op default
 ```
-WARNING: This approach for initialising and unsealing the vault is probably
+WARNING: This approach for initialising and unsealing the vault is
 not suitable for Production use - see the Vault Docs.
 
 Init GoStint:
@@ -64,11 +73,6 @@ Init GoStint:
 gostint/init/gostint-init.sh aut-op default
 ```
 NOTE: the gostint pods will wait for this init step to be completed.
-
-### Upgrade GoStint
-```bash
-helm upgrade aut-op gostint/
-```
 
 ### Ingress Controller
 The helm chart also deploys an Ingress Controller on port 443 to allow a single
@@ -98,9 +102,14 @@ gostint-client \
 Init Ingress:
 ```bash
 gostint/init/ingress-init.sh aut-op default
+```
 
 IMPORTANT: The above path based ingress for vault breaks end-to-end TLS
 encryption and could present a security risk (for gostint-client authenticating,
 but not for the actual submission of the job).  SSL Pasthrough with SNI
-hostname based routing may be a better option, or better yet, direct access to
-the vault.
+hostname based routing may be a better option.
+
+### Upgrade GoStint
+```bash
+helm upgrade aut-op gostint/
+```

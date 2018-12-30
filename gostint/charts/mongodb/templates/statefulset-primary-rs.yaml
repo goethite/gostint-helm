@@ -61,9 +61,11 @@ spec:
             value: "$(MONGODB_POD_NAME).{{ template "mongodb.fullname" . }}-headless.{{ .Release.Namespace }}"
             {{- end }}
           - name: MONGODB_USERNAME
-            value: {{ .Values.mongodbUsername | quote }}
+            # value: {{ .Values.mongodbUsername | quote }}
+            value: {{ default "" .Values.mongodbUsername | quote }}
           - name: MONGODB_DATABASE
-            value: {{ .Values.mongodbDatabase | quote }}
+            # value: {{ .Values.mongodbDatabase | quote }}
+            value: {{ default "" .Values.mongodbDatabase | quote }}
             {{- if .Values.usePassword }}
             {{- if .Values.mongodbPassword }}
           - name: MONGODB_PASSWORD

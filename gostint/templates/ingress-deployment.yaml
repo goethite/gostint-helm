@@ -7,6 +7,7 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/add-base-url: "true"
     # ingress.kubernetes.io/ssl-passthrough: "true"
     # nginx.ingress.kubernetes.io/secure-backends: "true"
   name: {{ template "gostint.fullname" . }}-ingress-gostint
