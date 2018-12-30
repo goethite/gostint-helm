@@ -121,3 +121,5 @@ I had an issue with internet access from the PODs under microk8s.  It seems the
 docker iptables rules where dropping the packets by default.
 see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
 for a solution.
+
+See also [gist to allow priviledged for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
