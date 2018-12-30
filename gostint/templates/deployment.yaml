@@ -156,6 +156,16 @@ spec:
               value: /gostint-tls/cert.pem
             - name: GOSTINT_SSL_KEY
               value: /gostint-tls/key.pem
+            - name: GOSTINT_UI
+              {{- if .Values.ui.enabled }}
+              value: "1"
+              {{- else }}
+              value: "0"
+              {{- end }}
+            {{- if .Values.ui.vaultExternalAddr }}
+            - name: VAULT_EXTERNAL_ADDR
+              value: {{ .Values.ui.vaultExternalAddr | quote }}
+            {{- end }}
           volumeMounts:
             - name: tls
               mountPath: "/gostint-tls"
