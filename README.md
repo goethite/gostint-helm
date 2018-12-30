@@ -113,3 +113,11 @@ hostname based routing may be a better option.
 ```bash
 helm upgrade aut-op gostint/
 ```
+
+## Notes
+
+### Microk8s
+I had an issue with internet access from the PODs under microk8s.  It seems the
+docker iptables rules where dropping the packets by default.
+see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
+for a solution.
