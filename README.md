@@ -15,8 +15,8 @@ The `values.yaml` setting `ui.vaultExternalAddr` must be set to the ingress
 url of the Vault, e.g. https://your-k8s-ingress/vault (see also comments
 below regarding the Ingress Controller).
 
-## IMPORTANT v1 -> v2
-The upgrade of the helm chart fro v1.* to v2.* is a breaking change due to
+## IMPORTANT Upgrading from v1 -> v2
+The upgrade of the helm chart from v1.* to v2.* is a breaking change due to
 MongoDB now being deployed as a StatefulSet.
 
 ## Requirements
@@ -121,3 +121,5 @@ I had an issue with internet access from the PODs under microk8s.  It seems the
 docker iptables rules where dropping the packets by default.
 see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
 for a solution.
+
+See also [gist to allow priviledged for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
