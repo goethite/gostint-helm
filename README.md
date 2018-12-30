@@ -15,8 +15,8 @@ The `values.yaml` setting `ui.vaultExternalAddr` must be set to the ingress
 url of the Vault, e.g. https://your-k8s-ingress/vault (see also comments
 below regarding the Ingress Controller).
 
-## IMPORTANT v1 -> v2
-The upgrade of the helm chart fro v1.* to v2.* is a breaking change due to
+## IMPORTANT Upgrading from v1 -> v2
+The upgrade of the helm chart from v1.* to v2.* is a breaking change due to
 MongoDB now being deployed as a StatefulSet.
 
 ## Requirements
