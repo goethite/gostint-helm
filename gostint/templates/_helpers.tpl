@@ -42,9 +42,5 @@ Create mongodb hostname
 Create vault hostname
 */}}
 {{- define "vault.fullname" -}}
-{{- if .Values.vault.internalToChart -}}
-{{- printf "%s-%s" .Release.Name "gostint-vault" | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- .Values.vault.external.fqdn -}}
-{{- end -}}
+{{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

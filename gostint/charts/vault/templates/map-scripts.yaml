@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "vault.fullname" . }}-scripts
+  labels:
+    app: {{ template "vault.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+{{ (.Files.Glob "scripts/vault/*").AsConfig | indent 2 }}

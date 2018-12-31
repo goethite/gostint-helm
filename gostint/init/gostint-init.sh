@@ -28,7 +28,7 @@ echo "DB_ROOT_PW: $DB_ROOT_PW"
 DB_HOST=$(kubectl get service $RELEASE-mongodb -o yaml | grep "^[ ]*clusterIP:" | awk '{ print $2;}')
 
 echo "Configuring Vault for GoStint"
-FIRST_VAULT_POD=$(kubectl get po -l app=vault,vault_cluster=$RELEASE-gostint-vault -n $NAMESPACE | awk '{if(NR==2)print $1}')
+FIRST_VAULT_POD=$(kubectl get po -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}')
 echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 
 kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -xe <<EOF

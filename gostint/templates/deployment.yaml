@@ -199,7 +199,7 @@ spec:
         - name: vaultca
           secret:
             {{- if .Values.vault.internalToChart }}
-            secretName: {{ template "vault.fullname" . }}-{{ .Release.Namespace }}-vault-client-tls
+            secretName: {{ template "vault.fullname" . }}-client-tls
             {{- else }}
             secretName: {{ .Values.vault.external.vaultClientTlsSecret }}
             {{- end }}

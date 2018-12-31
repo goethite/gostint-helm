@@ -19,3 +19,6 @@
 .project
 .idea/
 *.tmproj
+
+# scripts/binaries run from k8s manager
+/init/

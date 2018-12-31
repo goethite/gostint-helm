@@ -55,7 +55,7 @@ spec:
           # ssl-passthrough instead, with SNI ServerName routing.
           - path: /vault
             backend:
-              serviceName: {{ template "gostint.fullname" . }}-vault
+              serviceName: {{ .Release.Name }}-vault
               servicePort: 8200
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}
@@ -83,11 +83,11 @@ spec:
           # Workaround for ui redirect in vault
           - path: /ui
             backend:
-              serviceName: {{ template "gostint.fullname" . }}-vault
+              serviceName: {{ .Release.Name }}-vault
               servicePort: 8200
           - path: /v1
             backend:
-              serviceName: {{ template "gostint.fullname" . }}-vault
+              serviceName: {{ .Release.Name }}-vault
               servicePort: 8200
   tls:
     - secretName: {{ .Values.ingress.tls.secretName }}

@@ -30,18 +30,6 @@ MongoDB now being deployed as a StatefulSet.
 ## Deploying
 Note: `KUBECONFIG` must be set for your kubernetes environment and helm setup.
 
-### Install etcd-operator on your cluster
-see [etc-operator](https://github.com/helm/charts/tree/master/stable/etcd-operator)
-```bash
-helm install stable/etcd-operator --name site-op
-```
-
-### Install vault-operator on your cluster
-see [vault-operator](https://github.com/helm/charts/tree/master/stable/vault-operator)
-```bash
-helm install stable/vault-operator --name sec-op
-```
-
 ### Install nginx-ingress controller
 see [nginx-ingress](https://github.com/helm/charts/tree/master/stable/nginx-ingress)
 ```bash
@@ -51,6 +39,12 @@ helm upgrade ingress-op stable/nginx-ingress --set controller.extraArgs.v=2
 ```
 
 ### Install GoStint
+Run preinit(s):
+```bash
+gostint/init/vault-preinit.sh
+```
+
+Deploy the chart:
 ```bash
 helm install gostint/ --name aut-op
 ```
@@ -61,12 +55,7 @@ Wait for Vault PODs to be in running state then Init the vault:
 gostint/init/vault-init.sh aut-op default
 ```
 
-Unseal the vault:
-```bash
-gostint/init/vault-unseal.sh aut-op default
-```
-WARNING: This approach for initialising and unsealing the vault is
-not suitable for Production use - see the Vault Docs.
+Unsealing of the vault is automatic within the vault chart's postStart hook.
 
 Init GoStint:
 ```bash
@@ -112,6 +101,36 @@ hostname based routing may be a better option.
 ### Upgrade GoStint
 ```bash
 helm upgrade aut-op gostint/
+```
+
+### Delete GoStint (and all related data)
+```bash
+# Delete the helm chart. Note: although this leaves the MongoDB PVCs in place
+# (see below for how to delete them), there is no persistence for the etcd
+# backend for the Vault, so it's data will be lost - it is expected you would
+# backup / restore this data.
+helm delete aut-op
+helm delete aut-op --purge
+
+# Delete secrets (only do this if intending to delete the PVCs below)
+kubectl delete secret \
+  aut-op-gostint-db-auth-token \
+  aut-op-gostint-roleid \
+  aut-op-gostint-tls \
+  aut-op-ingress-tls \
+  aut-op-mongodb \
+  aut-op-vault-keys \
+  aut-op-vault-server-tls \
+  aut-op-vault-client-tls
+
+# Delete persistent volume claims
+kubectl delete pvc \
+  datadir-aut-op-mongodb-primary-0 \
+  datadir-aut-op-mongodb-secondary-0 \
+  datadir-aut-op-consul-0 \
+  datadir-aut-op-consul-1 \
+  datadir-aut-op-consul-2
+
 ```
 
 ## Notes
