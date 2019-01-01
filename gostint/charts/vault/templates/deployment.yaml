@@ -23,6 +23,24 @@ spec:
       annotations:
 {{ toYaml .Values.podAnnotations | indent 8 }}
     spec:
+      initContainers:
+        - name: wait-for-consul
+          image: alpine
+          command:
+            - 'sh'
+            - '-c'
+            - |-
+              for i in $(seq 1 200)
+              do
+                nc -z -w3 ${CONSUL_HOST} ${CONSUL_PORT} && \
+                  { sleep 15; exit 0; } || sleep 3
+              done
+              exit 1
+          env:
+            - name: CONSUL_HOST
+              value: {{ template "consul.fullname" . }}
+            - name: CONSUL_PORT
+              value: "8500"
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

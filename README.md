@@ -39,29 +39,11 @@ helm upgrade ingress-op stable/nginx-ingress --set controller.extraArgs.v=2
 ```
 
 ### Install GoStint
-Run preinit(s):
-```bash
-gostint/init/vault-preinit.sh
-```
-
 Deploy the chart:
 ```bash
-helm install gostint/ --name aut-op
+gostint/deploy.sh
 ```
-This starts etcd, vault, mongodb and gostint services.
-
-Wait for Vault PODs to be in running state then Init the vault:
-```bash
-gostint/init/vault-init.sh aut-op default
-```
-
-Unsealing of the vault is automatic within the vault chart's postStart hook.
-
-Init GoStint:
-```bash
-gostint/init/gostint-init.sh aut-op default
-```
-NOTE: the gostint pods will wait for this init step to be completed.
+This starts consul, vault, mongodb and gostint services.
 
 ### Ingress Controller
 The helm chart also deploys an Ingress Controller on port 443 to allow a single
@@ -95,42 +77,18 @@ gostint/init/ingress-init.sh aut-op default
 
 IMPORTANT: The above path based ingress for vault breaks end-to-end TLS
 encryption and could present a security risk (for gostint-client authenticating,
-but not for the actual submission of the job).  SSL Pasthrough with SNI
-hostname based routing may be a better option.
+but not for the actual submission of the job).  SSL Passthrough with SNI
+server based routing may be a better option.
 
 ### Upgrade GoStint
+Simply rerun `deploy.sh`:
 ```bash
-helm upgrade aut-op gostint/
+gostint/deploy.sh
 ```
 
-### Delete GoStint (and all related data)
+### Delete GoStint (and all related data, including Vault/Consul)
 ```bash
-# Delete the helm chart. Note: although this leaves the MongoDB PVCs in place
-# (see below for how to delete them), there is no persistence for the etcd
-# backend for the Vault, so it's data will be lost - it is expected you would
-# backup / restore this data.
-helm delete aut-op
-helm delete aut-op --purge
-
-# Delete secrets (only do this if intending to delete the PVCs below)
-kubectl delete secret \
-  aut-op-gostint-db-auth-token \
-  aut-op-gostint-roleid \
-  aut-op-gostint-tls \
-  aut-op-ingress-tls \
-  aut-op-mongodb \
-  aut-op-vault-keys \
-  aut-op-vault-server-tls \
-  aut-op-vault-client-tls
-
-# Delete persistent volume claims
-kubectl delete pvc \
-  datadir-aut-op-mongodb-primary-0 \
-  datadir-aut-op-mongodb-secondary-0 \
-  datadir-aut-op-consul-0 \
-  datadir-aut-op-consul-1 \
-  datadir-aut-op-consul-2
-
+gostint/destroy.sh
 ```
 
 ## Notes
@@ -141,4 +99,4 @@ docker iptables rules where dropping the packets by default.
 see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
 for a solution.
 
-See also [gist to allow priviledged for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
+See also [gist to allow priviledged container for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
