@@ -44,3 +44,10 @@ Create vault hostname
 {{- define "vault.fullname" -}}
 {{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*****************************************************************************
+Create consul hostname
+*/}}
+{{- define "consul.fullname" -}}
+{{- printf "%s-%s" .Release.Name "consul" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}

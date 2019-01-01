@@ -1,14 +1,7 @@
 #!/bin/bash -xe
 
-if [ $# -lt 2 ]
-  then
-    echo "Invalid arguments provided"
-    echo "Valid usage: "`basename "$0"`" <release-name> <namespace>"
-    exit 1
-fi
-
-RELEASE=$1
-NAMESPACE=$2
+RELEASE=${RELEASE:-aut-op}
+NAMESPACE=${NAMESPACE:-default}
 
 SECRET_NAME="$RELEASE-vault-keys"
 DB_SECRET_NAME="$RELEASE-mongodb"
@@ -34,7 +27,6 @@ echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -xe <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
-#vault login $ROOT_KEY
 vault status
 
 echo '=== Configuring MongoDB secret engine ========================='
