@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
 export RELEASE=${RELEASE:-aut-op}
 export NAMESPACE=${NAMESPACE:-default}
@@ -23,6 +23,7 @@ gostint/init/vault-init.sh
 
 # pods will auto unseal, see postStart lifecycle hook
 # so wait for each pod to be unsealed itself
+echo "Waiting for any sealed pods to unseal themselves"
 PODS=$(
   kubectl get pods \
     -l app=vault,release=$RELEASE \
@@ -51,6 +52,7 @@ do
     exit 1
   ) || exit 1
 done
+echo "All vault pods are unsealed"
 
 if [ $ISINSTALL == 1 ]
 then
@@ -58,3 +60,8 @@ then
   gostint/init/gostint-init.sh || exit 1
   gostint/init/ingress-init.sh || exit 1
 fi
+
+echo
+echo "****************************************"
+echo "*** GoStint PoC Helm Chart Deployed! ***"
+echo "****************************************"

@@ -73,7 +73,7 @@ spec:
             port: {{ .Values.service.port }}
             scheme: {{ if .Values.vault.config.listener.tcp.tls_disable -}}HTTP{{- else -}}HTTPS{{- end }}
         securityContext:
-          readOnlyRootFilesystem: false #true
+          readOnlyRootFilesystem: true
           capabilities:
             add:
             - IPC_LOCK
@@ -90,6 +90,8 @@ spec:
 {{ toYaml .Values.vault.extraEnv | indent 10 }}
         {{- end }}
         volumeMounts:
+        - name: deploy-logs
+          mountPath: "/deploy-logs"
         - name: vault-scripts
           mountPath: "/vault-scripts"
         - name: vault-config
@@ -140,6 +142,8 @@ spec:
 {{ tpl .Values.affinity . | indent 8 }}
       {{- end }}
       volumes:
+        - name: deploy-logs
+          emptyDir: {}
         - name: vault-scripts
           configMap:
             name: {{ template "vault.fullname" . }}-scripts

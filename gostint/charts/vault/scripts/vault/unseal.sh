@@ -1,5 +1,5 @@
 #!/bin/bash -x
-
+export TMPDIR=/deploy-logs
 (
 sleep 10
 
@@ -45,7 +45,7 @@ for i in $(seq 1 3)
 do
   eval vault operator unseal --tls-skip-verify \$KEY$i || exit 1
 done
-) </dev/null >/tmp/unseal.log 2>&1 &
+) </dev/null >/deploy-logs/unseal.log 2>&1 &
 disown
 disown -a
 

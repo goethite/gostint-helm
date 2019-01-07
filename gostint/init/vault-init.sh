@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 # From https://github.com/ReadyTalk/vault-helm-chart/blob/master/init/vault-init.sh
 
 RELEASE=${RELEASE:-aut-op}
@@ -12,6 +12,7 @@ SECRET_NAME="$RELEASE-vault-keys"
 LABELS=$(kubectl get secret -l release=$RELEASE -n $NAMESPACE --show-labels | sed -n 2p | awk '{print $5}' | sed 's/\,/ /g' | grep "app=vault") || /bin/true
 
 # Wait for a vault pod
+echo "Waiting for vault a pod..."
 FIRST_VAULT_POD=""
 for i in $(seq 1 200)
 do
@@ -29,15 +30,16 @@ then
 fi
 
 # Wait for vault container to start instead of sleeping ->
+echo "Waiting for vault container to start in pod..."
 for i in $(seq 1 200)
 do
-  kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault /bin/true && break
+  kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault /bin/true 2>/dev/null && break
   sleep 5
 done
 
 # wait for vault api to become available
 echo "Waiting for vault api..."
-kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -x -c '
+kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -c '
 for i in $(seq 1 200)
 do
    nc -z -w3 127.0.0.1 8200 && \
@@ -49,21 +51,19 @@ exit 1
 
 echo "Checking if vault already initialised"
 if
-  kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -x -c '
+  kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -c '
 wget -O- https://127.0.0.1:8200/v1/sys/health --no-check-certificate 2>&1 | grep "501 Not Implemented"
-'
+' 2>/dev/null
 then
   :
 else
-  # already initialised
+  echo "Vault already initialised"
   exit 0
 fi
 
 # echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 INIT_MESSAGE=$(kubectl exec -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -c "vault operator init --tls-skip-verify" 2>&1)
-# echo "INIT_MESSAGE: $INIT_MESSAGE"
 
-echo "$INIT_MESSAGE"
 KEYS=""
 if [[ ${INIT_MESSAGE} != *"Error initializing Vault"* && "${ADD_SECRET}" == "true"  ]]; then
   echo
