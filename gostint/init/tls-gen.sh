@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Usage:
 #   KUBE_NS=default \

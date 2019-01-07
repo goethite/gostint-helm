@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
 RELEASE=${RELEASE:-aut-op}
 NAMESPACE=${NAMESPACE:-default}

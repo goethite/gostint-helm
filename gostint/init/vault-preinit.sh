@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #
 # Prereqs:
 #   cfssl, cfssljson - from https://pkg.cfssl.org/
@@ -9,7 +9,7 @@ RELEASE=${1:-aut-op}
 RUNPATH=$(dirname $0)
 export PATH=$RUNPATH:$PATH  # resolve cfssl
 
-SECS=$(kubectl get secrets -n $NAMESPACE vault-client-tls vault-server-tls -o yaml | grep "name:" | wc -l) || exit 1
+SECS=$(kubectl get secrets -n $NAMESPACE vault-client-tls vault-server-tls -o yaml 2>/dev/null | grep "name:" | wc -l) || exit 1
 echo "Found $SECS TLS Secrets"
 
 if [ $SECS != 2 ]

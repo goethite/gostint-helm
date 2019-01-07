@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
 RELEASE=${RELEASE:-aut-op}
 NAMESPACE=${NAMESPACE:-default}
@@ -16,18 +16,18 @@ ROOT_KEY=$(kubectl get secret -n $NAMESPACE ${SECRET_NAME} -o yaml | grep -e "^[
 
 echo "Getting root mongodb password from Kubernetes secret"
 DB_ROOT_PW=$(kubectl get secret -n $NAMESPACE ${DB_SECRET_NAME} -o yaml | grep -e "^[ ]*mongodb-root-password:" | awk '{print $2}' | base64 --decode)
-echo "DB_ROOT_PW: $DB_ROOT_PW"
+# echo "DB_ROOT_PW: $DB_ROOT_PW"
 
 DB_HOST=$(kubectl get service $RELEASE-mongodb -o yaml | grep "^[ ]*clusterIP:" | awk '{ print $2;}')
 
 echo "Configuring Vault for GoStint"
 FIRST_VAULT_POD=$(kubectl get po -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}')
-echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
+# echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
 
-kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -xe <<EOF
+kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -e <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
-vault status
+#vault status
 
 echo '=== Configuring MongoDB secret engine ========================='
 vault secrets enable database || /bin/true
@@ -91,13 +91,13 @@ EOF
 
 echo '=== Get approle role_id for gostint ======================'
 GOSTINT_ROLEID=$(
-kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -x <<EOF
+kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
 vault read -format=yaml -field=data auth/approle/role/$GOSTINT_ROLENAME/role-id | awk '{print \$2;}'
 EOF
 )
-echo "GOSTINT_ROLEID: $GOSTINT_ROLEID"
+# echo "GOSTINT_ROLEID: $GOSTINT_ROLEID"
 
 echo "=== Deleting existing gostint role_id secret ============="
 kubectl delete secret -n $NAMESPACE $ROLEID_SECRET_NAME --ignore-not-found=true
@@ -118,7 +118,7 @@ kubectl label secret -n $NAMESPACE \
 
 echo "=== Creating gostint-mongodb-auth token =================="
 DB_AUTH_TOKEN=$(
-kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -x <<EOF
+kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh <<EOF
 export VAULT_SKIP_VERIFY=1
 export VAULT_TOKEN=$ROOT_KEY
 vault token create -policy=gostint-mongodb-auth -format=yaml | grep "^[ ]*client_token:" | awk '{print \$2;}'
