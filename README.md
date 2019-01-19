@@ -100,3 +100,11 @@ see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
 for a solution.
 
 See also [gist to allow priviledged container for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
+
+### Get Vault Pod HA Roles
+```bash
+kubectl -n default get pods \
+  | awk '/^aut-op-vault/ { print $1; }' \
+  | xargs -i@ kubectl -n default -c vault exec -i @ \
+    -- bash -c "echo -n '@ '; VAULT_SKIP_VERIFY=1 vault status | awk '/^HA Mode/ { printf \$3; }'; echo"
+```
