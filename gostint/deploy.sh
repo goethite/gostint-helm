@@ -23,7 +23,7 @@ gostint/init/vault-init.sh
 
 # pods will auto unseal, see postStart lifecycle hook
 # so wait for each pod to be unsealed itself
-echo "Waiting for any sealed pods to unseal themselves"
+echo "Waiting for all sealed pods to unseal themselves"
 PODS=$(
   kubectl get pods \
     -l app=vault,release=$RELEASE \
