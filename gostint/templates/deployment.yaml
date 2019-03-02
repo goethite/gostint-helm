@@ -130,7 +130,7 @@ spec:
 
             - name: VAULT_ADDR
               {{- if .Values.vault.internalToChart }}
-              value: https://{{ template "vault.fullname" . }}.{{ .Release.Namespace }}.svc:8200
+              value: https://{{ template "vault.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:8200
               {{- else }}
               value: https://{{ template "vault.fullname" . }}:{{ .Values.vault.external.port}}{{ .Values.vault.external.path}}
               {{- end }}
