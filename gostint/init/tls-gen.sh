@@ -61,7 +61,7 @@ cfssl print-defaults csr | \
 
 # add additional hosts to SAN:
 #   SAN_HOSTS="a.b.c,x.y.z"
-HOSTS="\"localhost\", \"*.${KUBE_NS}.pod\", \"*.${KUBE_NS}.svc\""
+HOSTS="\"localhost\", \"*.${KUBE_NS}.pod\", \"*.${KUBE_NS}.svc\", \"*.${KUBE_NS}.svc.cluster.local\""
 for i in $(echo ${SAN_HOSTS} | sed "s/,/ /g")
 do
     HOSTS="\"$i\",${HOSTS}"
