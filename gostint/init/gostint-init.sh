@@ -163,6 +163,9 @@ kubectl create secret generic $GOSTINT_TLS_SECRET_NAME -n $NAMESPACE \
   --from-file=$T_DIR/cert.pem
 
 echo "=== Deleting existing gostint TLS secret for ingress"
+# Note: the Cert's SAN wildcards allow this to be used in the SNI ingress
+# controller for both raffia and vault - it's purpose there is only to tell the
+# ingress it is https by matching the SNI Host name with the SAN wildcard.
 kubectl delete secret -n $NAMESPACE snigostint --ignore-not-found=true
 kubectl create secret tls snigostint -n $NAMESPACE \
   --key=$T_DIR/key.pem \

@@ -120,19 +120,20 @@ spec:
             backend:
               serviceName: {{ template "gostint.fullname" . }}
               servicePort: 3232
-{{- if .Values.vault.internalToChart -}}
+{{- if .Values.vault.internalToChart }}
     - host: snivault.default.pod
       http:
         paths:
           # Workaround for ui redirect in vault
           - path: /
             backend:
-              serviceName: {{ template "gostint.fullname" . }}-vault
+              # serviceName: {{ template "gostint.fullname" . }}-vault
+              serviceName: {{ .Release.Name }}-vault
               servicePort: 8200
 {{- end }}
   tls:
-{{- if .Values.vault.internalToChart -}}
-    - secretName: snivault
+{{- if .Values.vault.internalToChart }}
+    - secretName: snigostint #snivault
       hosts:
         - snivault.default.pod
 {{- end }}
