@@ -39,7 +39,8 @@ ingress:
 
 # Experimental SNI Ingress
 sniIngress:
-  enabled: false
+  # enabled: false
+  enabled: true
 
 ui:
   enabled: true
