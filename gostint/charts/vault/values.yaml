@@ -6,7 +6,7 @@ replicaCount: 3
 # imagePullSecret:
 image:
   repository: goethite/gostint-vault
-  tag: 0.11.4
+  tag: 1.1.0
   # pullPolicy: IfNotPresent
   pullPolicy: Always
 
@@ -96,6 +96,9 @@ lifecycle: |
     exec:
       command: ["/bin/bash", "-xe", "/vault-scripts/unseal.sh"]
 
+metrics:
+  enabled: true
+
 vault:
   # Only used to enable dev mode. When in dev mode, the rest of this config
   # section below is not used to configure Vault. See
@@ -136,6 +139,9 @@ vault:
     readyIfUninitialized: true
   config:
     ui: true
+    telemetry:
+      prometheus_retention_time: "60s"
+      disable_hostname: true
     # A YAML representation of a final vault config.json file.
     # See https://www.vaultproject.io/docs/configuration/ for more information.
     listener:

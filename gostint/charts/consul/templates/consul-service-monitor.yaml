@@ -1,0 +1,26 @@
+{{ if .Values.metrics.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "consul.fullname" . }}-service-monitor
+  labels:
+    heritage: {{ .Release.Service | quote }}
+    release: {{ .Release.Name | quote }}
+    chart: {{ template "consul.chart" . }}
+    component: "{{ .Release.Name }}-{{ .Values.Component }}"
+    mon-app: aut-op
+spec:
+  selector:
+    matchLabels:
+      release: {{ .Release.Name | quote }}
+      component: "{{ .Release.Name }}-{{ .Values.Component }}"
+  # namespaceSelector:
+  #   matchNames:
+  #     - default
+  endpoints:
+    - interval: 30s
+      path: /v1/agent/metrics
+      port: "http"
+      params:
+        format: ["prometheus"]
+{{- end }}
