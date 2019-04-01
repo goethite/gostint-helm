@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.6.10
+  tag: v1.7.0
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
@@ -43,6 +43,9 @@ sniIngress:
   enabled: true
 
 ui:
+  enabled: true
+
+metrics:
   enabled: true
 
   # The external ingress url that the UI will see from the browser

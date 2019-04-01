@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: "{{ template "consul.fullname" . }}"
   labels:
+    app: "{{ template "consul.name" . }}"
     heritage: {{ .Release.Service | quote }}
     release: {{ .Release.Name | quote }}
     chart: {{ template "consul.chart" . }}

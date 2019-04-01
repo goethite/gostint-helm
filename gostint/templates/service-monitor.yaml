@@ -1,0 +1,29 @@
+{{ if .Values.metrics.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "gostint.fullname" . }}-service-monitor
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    mon-app: aut-op
+spec:
+  selector:
+    matchLabels:
+      release: {{ .Release.Name | quote }}
+      app: "{{ template "gostint.name" . }}"
+  # namespaceSelector:
+  #   matchNames:
+  #     - default
+  endpoints:
+    - interval: 30s
+      path: /v1/api/metrics
+      port: "http"
+      params:
+        format: ["prometheus"]
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
+{{- end }}
