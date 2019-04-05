@@ -1,0 +1,37 @@
+{{ if .Values.metrics.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "vault.fullname" . }}-service-monitor
+  labels:
+    app: {{ template "vault.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    mon-app: aut-op
+spec:
+  selector:
+    matchLabels:
+      release: {{ .Release.Name | quote }}
+      # component: "{{ .Release.Name }}-{{ .Values.Component }}"
+      app: {{ template "vault.name" . }}
+  # namespaceSelector:
+  #   matchNames:
+  #     - default
+  endpoints:
+    - interval: 30s
+      path: /v1/sys/metrics
+      port: api
+      params:
+        format: ["prometheus"]
+
+      # NOTE: this is a path to a secret mounted in the prometheus instance itself
+      # NOTE: also i'm using the rootkey for PoC development - you should NOT use it,
+      #       and instead should create a dedicated token/policy with read access
+      #       only to the /v1/sys/metrics path.
+      bearerTokenFile: /etc/prometheus/secrets/aut-op-vault-keys/rootkey
+
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
+{{- end }}

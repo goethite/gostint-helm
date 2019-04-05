@@ -105,11 +105,13 @@ uiService:
   enabled: true
   type: "NodePort"
 
-ConsulConfig: []
+ConsulConfig: #[]
 #  - type: secret
 #    name: consul-defaults
 #  - type: configMap
 #    name: consul-defaults
+  - type: configMap
+    name: aut-op-consul-service-monitor
 
 ## Create an Ingress for the Web UI
 uiIngress:
@@ -123,6 +125,9 @@ acl:
   enabled: false
   masterToken: ""
   agentToken: ""
+
+metrics:
+  enabled: true
 
 ## test container details
 test:

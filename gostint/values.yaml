@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.6.10
+  tag: v1.8.0
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
@@ -44,9 +44,12 @@ sniIngress:
 
 ui:
   enabled: true
-
   # The external ingress url that the UI will see from the browser
   vaultExternalAddr: "https://192.168.0.62/vault"
+  # vaultExternalAddr: "https://snivault.default.pod:8443"
+
+metrics:
+  enabled: true
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

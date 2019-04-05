@@ -1,0 +1,13 @@
+{{ if .Values.metrics.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "consul.fullname" . }}-service-monitor
+data:
+  service-monitor.json: |-
+    {
+      "telemetry": {
+        "prometheus_retention_time": "60s"
+      }
+    }
+{{- end }}

@@ -108,3 +108,71 @@ kubectl -n default get pods \
   | xargs -i@ kubectl -n default -c vault exec -i @ \
     -- bash -c "echo -n '@ '; VAULT_SKIP_VERIFY=1 vault status | awk '/^HA Mode/ { printf \$3; }'; echo"
 ```
+
+### SNI Ingress and CORS
+If using the SNI Ingress Controller (maybe with [snimultihop](https://github.com/goethite/snimultihop))
+you will need to configure CORS in the vault for the external url.  In testing I
+have simply been setting this to `"*"`, e.g.:
+```bash
+curl -sSk \
+  --resolve snivault.default.pod:8443:127.0.0.1 \
+  -H "X-Vault-Token:7J...snip...VO" \
+  https://snivault.default.pod:8443/v1/sys/config/cors \
+  -X POST \
+  --data '{"enabled":true, "allowed_origins":"*"}'
+```
+Which gives the vault cors config:
+```bash
+curl -sSk \
+  --resolve snivault.default.pod:8443:127.0.0.1 \
+  -H "X-Vault-Token:7J...snip...VO" \
+  https://snivault.default.pod:8443/v1/sys/config/cors \
+  | jq
+```
+```json
+{
+  "enabled": true,
+  "allowed_origins": [
+    "*"
+  ],
+  "allowed_headers": [
+    "Content-Type",
+    "X-Requested-With",
+    "X-Vault-AWS-IAM-Server-ID",
+    "X-Vault-MFA",
+    "X-Vault-No-Request-Forwarding",
+    "X-Vault-Wrap-Format",
+    "X-Vault-Wrap-TTL",
+    "X-Vault-Policy-Override",
+    "Authorization",
+    "X-Vault-Token"
+  ],
+  "request_id": "fc9f43c6-c8cc-7d68-8a89-0f3531fd80a3",
+  "lease_id": "",
+  "renewable": false,
+  "lease_duration": 0,
+  "data": {
+    "allowed_headers": [
+      "Content-Type",
+      "X-Requested-With",
+      "X-Vault-AWS-IAM-Server-ID",
+      "X-Vault-MFA",
+      "X-Vault-No-Request-Forwarding",
+      "X-Vault-Wrap-Format",
+      "X-Vault-Wrap-TTL",
+      "X-Vault-Policy-Override",
+      "Authorization",
+      "X-Vault-Token"
+    ],
+    "allowed_origins": [
+      "*"
+    ],
+    "enabled": true
+  },
+  "wrap_info": null,
+  "warnings": null,
+  "auth": null
+}
+```
+In the real world you would want to set allowed_origins to the actual external
+url of the gostint service.
