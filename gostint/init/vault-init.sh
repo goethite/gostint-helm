@@ -16,7 +16,7 @@ echo "Waiting for vault a pod..."
 FIRST_VAULT_POD=""
 for i in $(seq 1 200)
 do
-  FIRST_VAULT_POD=$(kubectl get pod -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}')
+  FIRST_VAULT_POD=$(kubectl get pod -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}') || /bin/true
   if [ "$FIRST_VAULT_POD" != "" ]
   then
     break
