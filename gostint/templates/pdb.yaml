@@ -1,0 +1,15 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "gostint.fullname" . }}
+  labels:
+    app: {{ template "gostint.name" . }}
+    chart: {{ template "gostint.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: {{ template "gostint.name" . }}
+      release: {{ .Release.Name }}

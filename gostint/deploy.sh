@@ -24,16 +24,17 @@ gostint/init/vault-init.sh
 # pods will auto unseal, see postStart lifecycle hook
 # so wait for each pod to be unsealed itself
 echo "Waiting for all sealed pods to unseal themselves"
-PODS=$(
-  kubectl get pods \
-    -l app=vault,release=$RELEASE \
-    -n $NAMESPACE \
-    | awk '{if(NR>1)print $1}'
-)
-for POD in $PODS
-do
-  (
-    for i in $(seq 1 200)
+(
+  for i in $(seq 1 200)
+  do
+    PODS=$(
+      kubectl get pods \
+        -l app=vault,release=$RELEASE \
+        -n $NAMESPACE \
+        | awk '{if(NR>1)print $1}'
+    )
+    PODS_SEALED=0
+    for POD in $PODS
     do
       SEALED_STATUS=$(
         kubectl exec \
@@ -41,17 +42,22 @@ do
            -c vault \
           -- sh -c "vault status --tls-skip-verify | awk '/^Sealed/ { print \$2; }'" \
           2>&1
-      )
-      if [ "$SEALED_STATUS" == "false" ]
+      ) || /bin/true
+      if [ "$SEALED_STATUS" != "false" ]
       then
-        exit 0
+        let PODS_SEALED=$PODS_SEALED+1
       fi
-      sleep 5
     done
-    echo "ERROR: Timed out waiting for Vault POD $POD to unseal itself" >&2
-    exit 1
-  ) || exit 1
-done
+    if [ $PODS_SEALED == 0 ]
+    then
+      exit 0
+    fi
+    echo -n "."
+    sleep 5
+  done
+  echo "ERROR: Timed out waiting for Vault PODs to unseal themselves" >&2
+  exit 1
+) || exit 1
 echo "All vault pods are unsealed"
 
 if [ $ISINSTALL == 1 ]
