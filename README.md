@@ -46,7 +46,7 @@ gostint/deploy.sh
 This starts consul, vault, mongodb and gostint services.
 
 ### Ingress Controller
-The helm chart also deploys an Ingress Controller on port 443 to allow a single
+The helm chart also deploys an Ingress on port 443 to allow a single
 api to provide access to both the Vault and GoStint APIs using path based routing,
 e.g.:
 
@@ -99,7 +99,7 @@ docker iptables rules where dropping the packets by default.
 see my [gist](https://gist.github.com/gbevan/8a0a786cfc2728cd2998f868b0ff5b72)
 for a solution.
 
-See also [gist to allow priviledged container for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
+See also [gist to allow privileged container for microk8s](https://gist.github.com/antonfisher/d4cb83ff204b196058d79f513fd135a6).
 
 ### Get Vault Pod HA Roles
 ```bash
