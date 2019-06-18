@@ -10,7 +10,7 @@ replicaCount: 3
 
 image:
   repository: goethite/gostint
-  tag: v1.8.0
+  tag: v1.9.0
   pullPolicy: IfNotPresent
   # pullPolicy: Always
 
@@ -46,7 +46,8 @@ ui:
   enabled: true
   # The external ingress url that the UI will see from the browser
   vaultExternalAddr: "https://192.168.0.62/vault"
-  # vaultExternalAddr: "https://snivault.default.pod:8443"
+  # vaultExternalAddr: "https://snivault.default.pod:8443" # snimultihop testing
+  # vaultExternalAddr: "https://snivault.default.pod"
 
 metrics:
   enabled: true

@@ -5,10 +5,16 @@ NAMESPACE=${NAMESPACE:-default}
 
 SECRET_NAME="$RELEASE-vault-keys"
 DB_SECRET_NAME="$RELEASE-mongodb"
-ROLEID_SECRET_NAME="$RELEASE-gostint-roleid"
 DBTOKEN_SECRET_NAME="$RELEASE-gostint-db-auth-token"
 GOSTINT_TLS_SECRET_NAME="$RELEASE-gostint-tls"
+
+# Content Execution AppRole (PULL Mode)
 GOSTINT_ROLENAME="${GOSTINT_ROLENAME:-gostint-role}"
+GOSTINT_ROLE_SECRET_NAME="$RELEASE-gostint-role"
+
+# Deploy.Startup AppRole (PUSH Mode)
+GOSTINT_RUN_ROLENAME="${GOSTINT_RUN_ROLENAME:-gostint-run-role}"
+GOSTINT_RUN_ROLE_SECRET_NAME="$RELEASE-gostint-run-role"
 
 echo "Getting root key from Kubernetes secret"
 ROOT_KEY=$(kubectl get secret -n $NAMESPACE ${SECRET_NAME} -o yaml | grep -e "^[ ]*rootkey:" | awk '{print $2}' | base64 --decode)
@@ -23,6 +29,8 @@ DB_HOST=$(kubectl get service $RELEASE-mongodb -o yaml | grep "^[ ]*clusterIP:" 
 echo "Configuring Vault for GoStint"
 FIRST_VAULT_POD=$(kubectl get po -l app=vault,release=$RELEASE -n $NAMESPACE | awk '{if(NR==2)print $1}')
 # echo "FIRST_VAULT_POD: $FIRST_VAULT_POD"
+
+GOSTINT_RUN_SECRET_ID=$(uuidgen)
 
 kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh -e <<EOF
 export VAULT_SKIP_VERIFY=1
@@ -87,6 +95,17 @@ vault write auth/approle/role/$GOSTINT_ROLENAME \
   token_ttl=20m \
   token_max_ttl=30m \
   policies="gostint-approle-kv,$GOSTINT_ROLENAME-approle-transit-decrypt-gostint"
+
+echo '=== Create approle role for gostint-run =================='
+vault write auth/approle/role/$GOSTINT_RUN_ROLENAME \
+  token_num_uses=2 \
+  token_ttl=20m \
+  token_max_ttl=30m \
+  policies="gostint-mongodb-auth"
+
+echo '=== Add secret-id to gostint-run ========================='
+vault write auth/approle/role/$GOSTINT_RUN_ROLENAME/custom-secret-id \
+  secret_id=$GOSTINT_RUN_SECRET_ID
 EOF
 
 echo '=== Get approle role_id for gostint ======================'
@@ -99,49 +118,72 @@ EOF
 )
 # echo "GOSTINT_ROLEID: $GOSTINT_ROLEID"
 
+echo '=== Get approle role_id for gostint-run =================='
+GOSTINT_RUN_ROLEID=$(
+kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh <<EOF
+export VAULT_SKIP_VERIFY=1
+export VAULT_TOKEN=$ROOT_KEY
+vault read -format=yaml -field=data auth/approle/role/$GOSTINT_RUN_ROLENAME/role-id | awk '{print \$2;}'
+EOF
+)
+# echo "GOSTINT_ROLEID: $GOSTINT_ROLEID"
+
 echo "=== Deleting existing gostint role_id secret ============="
-kubectl delete secret -n $NAMESPACE $ROLEID_SECRET_NAME --ignore-not-found=true
+kubectl delete secret -n $NAMESPACE $GOSTINT_ROLE_SECRET_NAME --ignore-not-found=true
+
+echo "=== Deleting existing gostint-run role_id secret ============="
+kubectl delete secret -n $NAMESPACE $GOSTINT_RUN_ROLE_SECRET_NAME --ignore-not-found=true
 
 echo "=== Creating gostint role_id secret ======================"
-kubectl create secret generic $ROLEID_SECRET_NAME -n $NAMESPACE \
+kubectl create secret generic $GOSTINT_ROLE_SECRET_NAME -n $NAMESPACE \
   --from-literal=role_id=$GOSTINT_ROLEID \
   --from-literal=role_name=$GOSTINT_ROLENAME
 
 kubectl label secret -n $NAMESPACE \
-  $ROLEID_SECRET_NAME \
+  $GOSTINT_ROLE_SECRET_NAME \
   app="${RELEASE}-gostint-init"
 
 kubectl label secret -n $NAMESPACE \
   --overwrite \
-  $ROLEID_SECRET_NAME \
+  $GOSTINT_ROLE_SECRET_NAME \
   app="${RELEASE}-gostint-init"
 
-echo "=== Creating gostint-mongodb-auth token =================="
-DB_AUTH_TOKEN=$(
-kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh <<EOF
-export VAULT_SKIP_VERIFY=1
-export VAULT_TOKEN=$ROOT_KEY
-vault token create -policy=gostint-mongodb-auth -format=yaml | grep "^[ ]*client_token:" | awk '{print \$2;}'
-EOF
-)
-# vault token create -policy=gostint-mongodb-auth -period=10m -use-limit=2 -format=yaml | grep "^[ ]*client_token:" | awk '{print \$2;}'
+echo "=== Creating gostint-run role_id secret ======================"
+kubectl create secret generic $GOSTINT_RUN_ROLE_SECRET_NAME -n $NAMESPACE \
+  --from-literal=role_name=$GOSTINT_RUN_ROLENAME \
+  --from-literal=role_id=$GOSTINT_RUN_ROLEID \
+  --from-literal=secret_id=$GOSTINT_RUN_SECRET_ID
 
-# kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -- sh -x <<EOF
-# vault login $ROOT_KEY
+kubectl label secret -n $NAMESPACE \
+  $GOSTINT_RUN_ROLE_SECRET_NAME \
+  app="${RELEASE}-gostint-init"
+
+kubectl label secret -n $NAMESPACE \
+  --overwrite \
+  $GOSTINT_RUN_ROLE_SECRET_NAME \
+  app="${RELEASE}-gostint-init"
+
+# echo "=== Creating gostint-mongodb-auth token =================="
+# DB_AUTH_TOKEN=$(
+# kubectl exec -i -n $NAMESPACE $FIRST_VAULT_POD -c vault -- sh <<EOF
+# export VAULT_SKIP_VERIFY=1
+# export VAULT_TOKEN=$ROOT_KEY
+# vault token create -policy=gostint-mongodb-auth -format=yaml | grep "^[ ]*client_token:" | awk '{print \$2;}'
 # EOF
+# )
 
-echo "=== Deleting existing gostint gostint-mongodb-auth secret "
-kubectl delete secret -n $NAMESPACE $DBTOKEN_SECRET_NAME --ignore-not-found=true
+# echo "=== Deleting existing gostint gostint-mongodb-auth secret "
+# kubectl delete secret -n $NAMESPACE $DBTOKEN_SECRET_NAME --ignore-not-found=true
 
-echo "=== Creating gostint gostint-mongodb-auth secret ========="
-kubectl create secret generic $DBTOKEN_SECRET_NAME -n $NAMESPACE --from-literal=token=$DB_AUTH_TOKEN
-kubectl label secret -n $NAMESPACE \
-  $DBTOKEN_SECRET_NAME \
-  app="${RELEASE}-gostint-init"
-kubectl label secret -n $NAMESPACE \
-  --overwrite \
-  $DBTOKEN_SECRET_NAME \
-  app="${RELEASE}-gostint-init"
+# echo "=== Creating gostint gostint-mongodb-auth secret ========="
+# kubectl create secret generic $DBTOKEN_SECRET_NAME -n $NAMESPACE --from-literal=token=$DB_AUTH_TOKEN
+# kubectl label secret -n $NAMESPACE \
+#   $DBTOKEN_SECRET_NAME \
+#   app="${RELEASE}-gostint-init"
+# kubectl label secret -n $NAMESPACE \
+#   --overwrite \
+#   $DBTOKEN_SECRET_NAME \
+#   app="${RELEASE}-gostint-init"
 
 echo "=== Creating gostint self-signed cert ===================="
 T_DIR=$(mktemp -d /tmp/gostint.XXXXXXXXX)

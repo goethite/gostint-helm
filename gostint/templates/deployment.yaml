@@ -137,21 +137,36 @@ spec:
 
             - name: VAULT_CACERT
               value: "/vault-ca/vault-client-ca.crt"
-            - name: GOSTINT_DBAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-gostint-db-auth-token
-                  key: token
+            # - name: GOSTINT_DBAUTH_TOKEN
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: {{ .Release.Name }}-gostint-db-auth-token
+            #       key: token
             - name: GOSTINT_ROLENAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-gostint-roleid
+                  name: {{ .Release.Name }}-gostint-role
                   key: role_name
             - name: GOSTINT_ROLEID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-gostint-roleid
+                  name: {{ .Release.Name }}-gostint-role
                   key: role_id
+            - name: GOSTINT_RUN_ROLENAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-run-role
+                  key: role_name
+            - name: GOSTINT_RUN_ROLEID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-run-role
+                  key: role_id
+            - name: GOSTINT_RUN_SECRETID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-gostint-run-role
+                  key: secret_id
             - name: GOSTINT_SSL_CERT
               value: /gostint-tls/cert.pem
             - name: GOSTINT_SSL_KEY

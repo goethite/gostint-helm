@@ -19,7 +19,8 @@ helm delete aut-op --purge
 # Delete secrets (only do this if intending to delete the PVCs below)
 kubectl delete secret \
   aut-op-gostint-db-auth-token \
-  aut-op-gostint-roleid \
+  aut-op-gostint-role \
+  aut-op-gostint-run-role \
   aut-op-gostint-tls \
   aut-op-ingress-tls \
   aut-op-mongodb \
